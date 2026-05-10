@@ -1,0 +1,1 @@
+echo "System revival ready."

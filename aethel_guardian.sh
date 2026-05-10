@@ -1,0 +1,1 @@
+echo "Data protection active."
