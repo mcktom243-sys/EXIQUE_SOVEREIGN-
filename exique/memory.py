@@ -14,6 +14,7 @@ class Memory:
         return False
 
     def save_to_vault(self):
+        os.makedirs(os.path.dirname(self.vault_path), exist_ok=True)
         with open(self.vault_path, 'wb') as f:
             pickle.dump(self.data, f)
 
