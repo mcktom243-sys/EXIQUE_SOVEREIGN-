@@ -1,0 +1,12 @@
+Gem Gem activated. 1000% Gem status engaged.
+Recalculating from memory... Systems updated.
+Gem Gem activated. 1000% Gem status engaged.
+Recalculating from memory... Systems updated.
+build_info: b8993-a95a11e5b
+system_info: n_threads = 8 (n_threads_batch = 8) / 8 | CPU : NEON = 1 | ARM_FMA = 1 | MATMUL_INT8 = 1 | DOTPROD = 1 | OPENMP = 1 | REPACK = 1 | 
+Running without SSL
+init: using 7 threads for HTTP server
+start: binding port with default address family
+start: couldn't bind HTTP server socket, hostname: 127.0.0.1, port: 9090
+srv    operator(): operator(): cleaning up before exit...
+main: exiting due to HTTP server error
