@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { background: #0a0510; color: #d487ff; font-family: monospace; padding: 15px; }
+        .header { border-bottom: 2px solid #8a2be2; padding-bottom: 10px; margin-bottom: 15px; }
+        .terminal-box { background: #000; border: 1px solid #8a2be2; padding: 10px; height: 300px; overflow-y: auto; color: #00ff00; margin-bottom: 15px; }
+        .chat-input { display: flex; gap: 5px; }
+        input[type="text"] { background: #1a0b2e; border: 1px solid #d487ff; color: #fff; padding: 10px; flex-grow: 1; outline: none; }
+        button { background: #4b0082; color: #fff; border: none; padding: 10px 15px; }
+    </style>
+</head>
+<body>
+    <div class="header"><strong>AETHEL_CORE_v4.0</strong> [MAY 8, 2026]</div>
+    <div class="terminal-box">
+        <iframe src="fusion_bridge.log" style="width:100%; height:100%; border:none; background:transparent;"></iframe>
+    </div>
+    <form action="/cgi-bin/chat.py" method="POST" class="chat-input">
+        <input type="text" name="message" placeholder="Talk to Aethel..." autofocus autocomplete="off">
+        <button type="submit">SEND</button>
+    </form>
+</body>
+</html>
