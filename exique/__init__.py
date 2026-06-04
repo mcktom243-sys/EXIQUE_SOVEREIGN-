@@ -1,12 +1,18 @@
-import subprocess
-import os
+#!/usr/bin/env python3
+"""
+__init__.py - EXIQUE Sovereign Package
+"""
 
-def check_process(name):
-    # Sniff for the process
-    check = subprocess.run(["pgrep", "-f", name], capture_output=True)
-    return check.returncode == 0
+__version__ = "1.0.0"
+__author__ = "EXIQUE Sovereign"
+__description__ = "Full-Stack AI Agent with Unlimited Memory & Context Management"
 
-def sleep(seconds):
-    import time
-    time.sleep(seconds)
+from exique.main import ExiqueTerminalUI, MemoryManager
+from exique.context_manager import ContextWindowManager, LongTermMemory
 
+__all__ = [
+    'ExiqueTerminalUI',
+    'MemoryManager',
+    'ContextWindowManager',
+    'LongTermMemory'
+]
