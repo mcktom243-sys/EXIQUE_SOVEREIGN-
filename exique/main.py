@@ -9,21 +9,13 @@ import os
 import sys
 import json
 import sqlite3
+import requests
 from datetime import datetime
 from pathlib import Path
 from typing import Optional, List, Dict, Any
 import asyncio
 from collections import deque
 import hashlib
-
-# LLM & AI
-try:
-    from langchain.llms import Ollama
-    from langchain.memory import ConversationBufferMemory, EntityStore
-    from langchain.chains import ConversationChain
-    from langchain.prompts import PromptTemplate
-except ImportError:
-    pass
 
 # CLI & UI
 from colorama import Fore, Back, Style, init
@@ -180,25 +172,71 @@ class MemoryManager:
         return subjects
 
 
+class OllamaClient:
+    """Direct Ollama API client"""
+    
+    def __init__(self, base_url: str = "http://localhost:11434"):
+        self.base_url = base_url
+        self.model = "mistral"
+        self.connected = False
+        self.check_connection()
+    
+    def check_connection(self) -> bool:
+        """Check if Ollama server is running"""
+        try:
+            response = requests.head(f"{self.base_url}/", timeout=2)
+            self.connected = response.status_code == 200
+            return self.connected
+        except:
+            self.connected = False
+            return False
+    
+    def generate(self, prompt: str) -> str:
+        """Generate response from Ollama"""
+        if not self.connected:
+            return "Ollama server not available. Make sure 'ollama serve' is running."
+        
+        try:
+            response = requests.post(
+                f"{self.base_url}/api/generate",
+                json={
+                    "model": self.model,
+                    "prompt": prompt,
+                    "stream": False,
+                    "temperature": 0.7,
+                },
+                timeout=120
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                return result.get("response", "No response generated")
+            else:
+                return f"Error: {response.status_code} - {response.text}"
+        except requests.exceptions.Timeout:
+            return "Request timed out. Model may be processing large input."
+        except Exception as e:
+            return f"Error: {str(e)}"
+
+
 class ExiqueTerminalUI:
     """Terminal UI for EXIQUE Sovereign with unlimited context"""
     
     def __init__(self):
         self.memory = MemoryManager()
-        self.ai_model = None
-        self.conversation_chain = None
+        self.ollama = None
         self.session_start = datetime.now()
         self.message_count = 0
         self.init_ai_model()
         
     def init_ai_model(self):
-        """Initialize LLM with Ollama"""
-        try:
-            self.ai_model = Ollama(model="mistral")
+        """Initialize Ollama client"""
+        self.ollama = OllamaClient()
+        if self.ollama.connected:
             print(f"{Fore.GREEN}✓ AI Model initialized (Mistral via Ollama){Style.RESET_ALL}")
-        except Exception as e:
-            print(f"{Fore.YELLOW}⚠ Ollama not available: {e}{Style.RESET_ALL}")
-            print(f"{Fore.CYAN}Install with: curl https://ollama.ai/install.sh | sh{Style.RESET_ALL}")
+        else:
+            print(f"{Fore.YELLOW}⚠ Ollama not available{Style.RESET_ALL}")
+            print(f"{Fore.CYAN}Make sure to run 'ollama serve' in another terminal{Style.RESET_ALL}")
     
     def display_banner(self):
         """Display welcome banner"""
@@ -237,6 +275,7 @@ class ExiqueTerminalUI:
         print(f"Memory DB: {self.memory.db_path}")
         print(f"Subjects Discussed: {len(subjects)}")
         print(f"Memory Buffer Size: {len(self.memory.conversation_buffer)}")
+        print(f"Ollama Connected: {self.ollama.connected}")
         if subjects:
             print(f"Recent Topics: {', '.join(subjects[:5])}")
         print()
@@ -269,8 +308,8 @@ class ExiqueTerminalUI:
     
     async def generate_response(self, user_input: str) -> str:
         """Generate AI response with memory context"""
-        if not self.ai_model:
-            return "AI Model not initialized. Please install Ollama."
+        if not self.ollama.connected:
+            return "Ollama server not running. Start it with 'ollama serve' in another terminal."
         
         # Get context from memory
         context = self.memory.get_context_for_response(user_input)
@@ -284,11 +323,9 @@ Current Request:
 Respond thoughtfully, referencing previous conversations when relevant.
 Keep responses concise but informative."""
         
-        try:
-            response = await asyncio.to_thread(self.ai_model.invoke, prompt)
-            return response
-        except Exception as e:
-            return f"Error generating response: {e}"
+        # Run in thread to avoid blocking
+        response = await asyncio.to_thread(self.ollama.generate, prompt)
+        return response
     
     def handle_command(self, command: str):
         """Handle special commands"""
